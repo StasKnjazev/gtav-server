@@ -1,0 +1,5 @@
+# ignore node_modules files...
+node_modules
+
+# Hid the main .env file, use .example
+.env
