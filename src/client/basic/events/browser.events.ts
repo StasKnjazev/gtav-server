@@ -1,0 +1,1 @@
+// const hud = mp.browsers.new('package://web/src/index.html');
