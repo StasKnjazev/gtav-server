@@ -17,15 +17,19 @@ mp.events.addCommand({
 		if (player.serial !== user.serial) return player.outputChatBox('[Serial] Аккаунт не соответсвует полученным данным.');
 		if (player.rgscId !== user.rgsc) return player.outputChatBox('[Rgsc] Аккаунт не соответсвует полученным данным.');
 
-		const {x, y, z}: any = user.position;
+		const { x, y, z }: any = user.position;
 		player.position = new mp.Vector3(x, y, z);
 		player.dbId = user._id.toString();
+		player.uid = user.uid;
 
 		player.outputChatBox(`Добро пожаловать на сервер: ${user.firstName} ${user.lastName}`);
 	},
 
 	find: async (player: PlayerMp, inputId: string) => {
-		const user = await UserModel.findOne({  });
+		const user = await UserModel.find({ _id: inputId });
+        if (!user) return player.outputChatBox('Пользователь не найден');
+
+        console.log(user);
 	},
 
 	reg: async (player: PlayerMp, inputEmail: string) => {
@@ -37,9 +41,9 @@ mp.events.addCommand({
 			login: 'login4',
 			firstName: 'firstname4',
 			lastName: 'lastName4',
-			fullName: `firstname4 + lastName4`, /** тут сделать потом что-то типо: firstName + lastName (чтобы получить полное ФИ) */
+			fullName: `firstname4 + lastName4` /** тут сделать потом что-то типо: firstName + lastName (чтобы получить полное ФИ) */,
 			password: passHash,
-			loggedIn: false,
+			loggedIn: player.loggedIn,
 			ip: player.ip,
 			serial: player.serial,
 			rgsc: player.rgscId,
@@ -54,7 +58,7 @@ mp.events.addCommand({
 
 	pos: (player: PlayerMp, _: any): void => {
 		let p: Vector3 = player.position;
-		let r: number | Vector3 = player.heading;
-		console.log(`${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)} | * Head: ${r.toFixed(4)}`);
-	},
+		let h: number | Vector3 = player.heading;
+		console.log(`${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)} | * Head: ${h.toFixed(4)}`);
+	}
 });

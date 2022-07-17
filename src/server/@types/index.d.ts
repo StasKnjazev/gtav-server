@@ -12,6 +12,7 @@ declare global {
 		adminLvl: string;
 		loggedIn: boolean;
 		dbId: string;
+		uid: number;
 	}
 }
 

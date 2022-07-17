@@ -1,17 +1,10 @@
 import { Schema, model, trusted } from 'mongoose';
 import { IUser } from '../interface/User-Interface';
 
-const userSchema = new Schema<IUser>(
+export const userSchema = new Schema<IUser>(
 	{
-		dbId: {
-			type: String,
-			required: true,
-			unique: true
-		},
-
 		uid: {
 			type: Number,
-			required: true,
 			unique: true
 		},
 

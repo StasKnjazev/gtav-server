@@ -50,6 +50,103 @@ class Time {
     }
 }
 
+const userSchema = new mongoose.Schema({
+    uid: {
+        type: Number,
+        unique: true
+    },
+    email: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    login: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    firstName: {
+        type: String,
+        required: true
+    },
+    lastName: {
+        type: String,
+        required: true
+    },
+    fullName: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    password: {
+        type: String,
+        required: true
+    },
+    loggedIn: {
+        type: Boolean,
+        required: true
+    },
+    rgsc: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    socialClub: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    ip: {
+        type: String
+    },
+    serial: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    position: {
+        type: Object,
+        required: true
+    },
+}, {
+    timestamps: true,
+    versionKey: false
+});
+const UserModel = mongoose.model('accounts', userSchema);
+
+const counterSchema = new mongoose.Schema({
+    _id: {
+        type: String,
+        required: true
+    },
+    seq: {
+        type: Number,
+        default: 0
+    }
+});
+counterSchema.index({
+    _id: 1,
+    seq: 1
+}, { unique: true });
+const counterModel = mongoose.model('counter', counterSchema);
+
+const autoincrement = (document, field, next) => {
+    counterModel.findByIdAndUpdate(document.constructor.modelName, { $inc: { seq: 1 } }, { new: true, upsert: true }, (error, counter) => {
+        if (error)
+            return next(error);
+        document[field] = counter.seq;
+        next();
+    });
+};
+
+userSchema.pre('save', function (next) {
+    if (!this.isNew) {
+        next();
+        return;
+    }
+    autoincrement(this, 'uid', next);
+});
+
 class MongooseConnection {
     url;
     constructor(urlDatabase) {
@@ -69,6 +166,49 @@ class MongooseConnection {
         }
     }
 }
+
+class Auth {
+    login;
+    password;
+    passwordHash;
+    constructor() {
+        this.initEvents();
+    }
+    initEvents() {
+        mp.events.add({
+            playerJoin: async (player) => {
+                try {
+                    const findUser = await UserModel.findOne({ serial: player.serial });
+                    if (!findUser)
+                        return player.outputChatBox('Авторизация не доступна, только регистрация.'); // сделать чтобы отображало страницу регистрации
+                    UserModel.findOneAndUpdate({ serial: player.serial }, { $set: { loggedIn: true } });
+                    player.outputChatBox(`Добро пожаловать на сервер ${findUser.firstName} ${findUser.lastName}`);
+                    const { x, y, z } = findUser.position;
+                    player.position = new mp.Vector3(x, y, z);
+                    player.dbId = findUser._id.toString();
+                    player.loggedIn = true;
+                    // method автоматического логина в аккаунт (через storage)
+                }
+                catch (e) {
+                    console.error(e);
+                }
+            },
+            playerQuit: async (player) => {
+                try {
+                    const findUserQuit = await UserModel.findOneAndUpdate({ serial: player.serial });
+                    if (!findUserQuit)
+                        return console.log('Данный пользователь либо не найден, либо не вышел из игры!');
+                    console.log(`${findUserQuit.firstName} ${findUserQuit.lastName} - Вышел из игры!`);
+                    player.loggedIn = false;
+                }
+                catch (e) {
+                    console.log(e);
+                }
+            }
+        });
+    }
+}
+new Auth();
 
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
@@ -1496,76 +1636,6 @@ var bcrypt$1 = {exports: {}};
 
 var bcrypt = /*@__PURE__*/getDefaultExportFromCjs(bcryptjs.exports);
 
-const userSchema = new mongoose.Schema({
-    dbId: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    uid: {
-        type: Number,
-        required: true,
-        unique: true
-    },
-    email: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    login: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    firstName: {
-        type: String,
-        required: true
-    },
-    lastName: {
-        type: String,
-        required: true
-    },
-    fullName: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    password: {
-        type: String,
-        required: true
-    },
-    loggedIn: {
-        type: Boolean,
-        required: true
-    },
-    rgsc: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    socialClub: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    ip: {
-        type: String
-    },
-    serial: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    position: {
-        type: Object,
-        required: true
-    },
-}, {
-    timestamps: true,
-    versionKey: false
-});
-const UserModel = mongoose.model('accounts', userSchema);
-
 mp.events.addCommand({
     login: async (player, inputLogin) => {
         const inputPassword = 'pass4';
@@ -1586,10 +1656,14 @@ mp.events.addCommand({
         const { x, y, z } = user.position;
         player.position = new mp.Vector3(x, y, z);
         player.dbId = user._id.toString();
+        player.uid = user.uid;
         player.outputChatBox(`Добро пожаловать на сервер: ${user.firstName} ${user.lastName}`);
     },
     find: async (player, inputId) => {
-        await UserModel.findOne({});
+        const user = await UserModel.find({ _id: inputId });
+        if (!user)
+            return player.outputChatBox('Пользователь не найден');
+        console.log(user);
     },
     reg: async (player, inputEmail) => {
         const pass = 'pass4';
@@ -1599,9 +1673,9 @@ mp.events.addCommand({
             login: 'login4',
             firstName: 'firstname4',
             lastName: 'lastName4',
-            fullName: `firstname4 + lastName4`,
+            fullName: `firstname4 + lastName4` /** тут сделать потом что-то типо: firstName + lastName (чтобы получить полное ФИ) */,
             password: passHash,
-            loggedIn: false,
+            loggedIn: player.loggedIn,
             ip: player.ip,
             serial: player.serial,
             rgsc: player.rgscId,
@@ -1613,35 +1687,10 @@ mp.events.addCommand({
     },
     pos: (player, _) => {
         let p = player.position;
-        let r = player.heading;
-        console.log(`${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)} | * Head: ${r.toFixed(4)}`);
-    },
+        let h = player.heading;
+        console.log(`${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)} | * Head: ${h.toFixed(4)}`);
+    }
 });
-
-class Auth {
-    login;
-    password;
-    passwordHash;
-    constructor() {
-        this.initEvents();
-    }
-    initEvents() {
-        mp.events.add({
-            playerJoin: async (player) => {
-                try {
-                    const findUser = UserModel.findOne({ socialClub: player.socialClub });
-                    if (!findUser)
-                        return player.outputChatBox('Авторизация не доступна, только регистрация.'); // сделать чтобы отображало страницу регистрации
-                    // method автоматического логина в аккаунт (через storage)
-                }
-                catch (e) {
-                    console.error(e);
-                }
-            },
-        });
-    }
-}
-new Auth();
 
 const dotenvConfig = dotenv.config({
     path: path__default["default"].resolve('.env')
