@@ -4,7 +4,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import App from './App';
 import Authorziation from './components/auth/Auth.components';
 
-import './index.css';
+import './index.scss';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -19,3 +19,5 @@ root.render(
     </BrowserRouter>
   </React.StrictMode>
 );
+
+// todo: Сделать нормальную редирекцию (с history)

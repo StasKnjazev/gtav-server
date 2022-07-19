@@ -1,0 +1,120 @@
+.login {
+    display: flex;
+    background: #000;
+    max-width: 450px;
+    height: 65%;
+    left: 25%;
+    margin: 100px 0 0 80px;
+    border-radius: 12.5px;
+    border: 0.5px solid white;
+
+    flex-direction: column;
+    flex-wrap: wrap;
+
+    input {
+        margin-left: 30px;
+    }
+
+    .content {
+        position: relative;
+        text-align: center;
+        display: block;
+        width: 100%;
+        margin: 5px;
+
+        .title {
+            justify-content: center;
+            font-family: 'SF Bold';
+            display: flex;
+            color: white;
+            margin-top: 15px;
+        }
+
+        .description {
+            justify-content: center;
+            font-family: 'SF Light';
+            display: flex;
+            color: white;
+            font-size: 16px;
+            margin-top: 25px;
+        }
+
+        .logIn {
+            display: flex;
+            width: 85%;
+            height: 55px;
+            margin-top: 60px;
+            background: #000;
+            color: white;
+            border: 1px solid white;
+            border-radius: 7.5px;
+            padding-left: 10px;
+            font-size: 16px;
+        }
+
+        .logIn:focus {
+            background: #111;
+            box-shadow: 0px 8px 50px 23px rgba(34, 60, 80, 0.2);
+        }
+
+        .pass {
+            display: flex;
+            width: 85%;
+            height: 55px;
+            margin-top: 25px;
+            background: #000;
+            color: white;
+            border: 1px solid white;
+            border-radius: 7.5px;
+            padding-left: 10px;
+            font-size: 16px;
+        }
+
+        .pass:focus {
+            background: #111;
+            box-shadow: 0px 8px 50px 23px rgba(34, 60, 80, 0.2);
+        }
+
+        // button
+
+        .enterBtn {
+            font-family: 'SF Light';
+            display: flex;
+            border: none;
+            background: #007bff;
+            color: white;
+            font-size: 20px;
+            border-radius: 5px;
+            margin: 70px 0 0 40px;
+            justify-content: center;
+            align-items: center;            
+            width: 140px;
+            height: 50px;
+        }
+
+        .enterBtn:hover {
+            background: #015bbb;
+            cursor: pointer;
+        }
+
+        .registerBtn {
+            font-family: 'SF Light';
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 210px;
+            height: 50px;
+            border: none;
+            font-size: 20px;
+            border-radius: 5px;
+            margin: -50px 50px 0 190px;
+            color: white;
+            background: #007bff;
+        }
+
+        .registerBtn:hover {
+            background: #015bbb;
+            cursor: pointer;
+        }
+    }
+}

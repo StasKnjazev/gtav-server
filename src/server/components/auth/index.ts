@@ -1,4 +1,5 @@
 import { UserModel } from "@/database/models/User";
+import bcrypt from 'bcryptjs';
 
 class Auth {
     private login!: string;
@@ -39,7 +40,39 @@ class Auth {
                 } catch (e) {
                     console.log(e);
                 }
-            }
+            },
+
+            authLogin: async (player: PlayerMp, login: string, password: string) => {
+                player.outputChatBox(`[Server] ${login} ${password}`);
+                const authUser = await UserModel.findOne({ login: login });
+                if (!authUser) return console.log('Неверный логин или пароль!');
+            },
+
+            authRegister: async (player: PlayerMp, email: string, login: string, password: string) => {
+                player.outputChatBox(`[Server] ${email} ${login} ${password}`);
+                const findUser = await UserModel.findOne({ serial: player.serial });
+                if (!findUser || !findUser.socialClub || !findUser.rgsc) {
+                    const passHash = (await bcrypt.hash(password, 10)).toString();
+                    
+                    const newUser = new UserModel({
+                        email: email,
+                        login: login,
+                        password: passHash,
+                        loggedIn: true,
+                        rgsc: player.rgscId,
+                        socialClub: player.socialClub,
+                        ip: player.ip,
+                        serial: player.serial,
+                        position: player.position
+                    });
+
+                    await newUser.save();
+
+                    player.outputChatBox(`Аккаунт успешно зарегистрирован под логином: ${login}`);
+                } else {
+                    player.outputChatBox('Аккаунт уже существует');
+                }
+            },
         });
     }
 }

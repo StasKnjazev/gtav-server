@@ -65,19 +65,19 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
-    firstName: {
-        type: String,
-        required: true
-    },
-    lastName: {
-        type: String,
-        required: true
-    },
-    fullName: {
-        type: String,
-        required: true,
-        unique: true
-    },
+    // firstName: {
+    // 	type: String,
+    // 	required: true
+    // },
+    // lastName: {
+    // 	type: String,
+    // 	required: true
+    // },
+    // fullName: {
+    // 	type: String,
+    // 	required: true,
+    // 	unique: true
+    // },
     password: {
         type: String,
         required: true
@@ -166,49 +166,6 @@ class MongooseConnection {
         }
     }
 }
-
-class Auth {
-    login;
-    password;
-    passwordHash;
-    constructor() {
-        this.initEvents();
-    }
-    initEvents() {
-        mp.events.add({
-            playerJoin: async (player) => {
-                try {
-                    const findUser = await UserModel.findOne({ serial: player.serial });
-                    if (!findUser)
-                        return player.outputChatBox('Авторизация не доступна, только регистрация.'); // сделать чтобы отображало страницу регистрации
-                    UserModel.findOneAndUpdate({ serial: player.serial }, { $set: { loggedIn: true } });
-                    player.outputChatBox(`Добро пожаловать на сервер ${findUser.firstName} ${findUser.lastName}`);
-                    const { x, y, z } = findUser.position;
-                    player.position = new mp.Vector3(x, y, z);
-                    player.dbId = findUser._id.toString();
-                    player.loggedIn = true;
-                    // method автоматического логина в аккаунт (через storage)
-                }
-                catch (e) {
-                    console.error(e);
-                }
-            },
-            playerQuit: async (player) => {
-                try {
-                    const findUserQuit = await UserModel.findOneAndUpdate({ serial: player.serial });
-                    if (!findUserQuit)
-                        return console.log('Данный пользователь либо не найден, либо не вышел из игры!');
-                    console.log(`${findUserQuit.firstName} ${findUserQuit.lastName} - Вышел из игры!`);
-                    player.loggedIn = false;
-                }
-                catch (e) {
-                    console.log(e);
-                }
-            }
-        });
-    }
-}
-new Auth();
 
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
@@ -1635,6 +1592,78 @@ var bcrypt$1 = {exports: {}};
 } (bcryptjs));
 
 var bcrypt = /*@__PURE__*/getDefaultExportFromCjs(bcryptjs.exports);
+
+class Auth {
+    login;
+    password;
+    passwordHash;
+    constructor() {
+        this.initEvents();
+    }
+    initEvents() {
+        mp.events.add({
+            playerJoin: async (player) => {
+                try {
+                    const findUser = await UserModel.findOne({ serial: player.serial });
+                    if (!findUser)
+                        return player.outputChatBox('Авторизация не доступна, только регистрация.'); // сделать чтобы отображало страницу регистрации
+                    UserModel.findOneAndUpdate({ serial: player.serial }, { $set: { loggedIn: true } });
+                    player.outputChatBox(`Добро пожаловать на сервер ${findUser.firstName} ${findUser.lastName}`);
+                    const { x, y, z } = findUser.position;
+                    player.position = new mp.Vector3(x, y, z);
+                    player.dbId = findUser._id.toString();
+                    player.loggedIn = true;
+                    // method автоматического логина в аккаунт (через storage)
+                }
+                catch (e) {
+                    console.error(e);
+                }
+            },
+            playerQuit: async (player) => {
+                try {
+                    const findUserQuit = await UserModel.findOneAndUpdate({ serial: player.serial });
+                    if (!findUserQuit)
+                        return console.log('Данный пользователь либо не найден, либо не вышел из игры!');
+                    console.log(`${findUserQuit.firstName} ${findUserQuit.lastName} - Вышел из игры!`);
+                    player.loggedIn = false;
+                }
+                catch (e) {
+                    console.log(e);
+                }
+            },
+            authLogin: async (player, login, password) => {
+                player.outputChatBox(`[Server] ${login} ${password}`);
+                const authUser = await UserModel.findOne({ login: login });
+                if (!authUser)
+                    return console.log('Неверный логин или пароль!');
+            },
+            authRegister: async (player, email, login, password) => {
+                player.outputChatBox(`[Server] ${email} ${login} ${password}`);
+                const findUser = await UserModel.findOne({ serial: player.serial });
+                if (!findUser || !findUser.socialClub || !findUser.rgsc) {
+                    const passHash = (await bcrypt.hash(password, 10)).toString();
+                    const newUser = new UserModel({
+                        email: email,
+                        login: login,
+                        password: passHash,
+                        loggedIn: true,
+                        rgsc: player.rgscId,
+                        socialClub: player.socialClub,
+                        ip: player.ip,
+                        serial: player.serial,
+                        position: player.position
+                    });
+                    await newUser.save();
+                    player.outputChatBox(`Аккаунт успешно зарегистрирован под логином: ${login}`);
+                }
+                else {
+                    player.outputChatBox('Аккаунт уже существует');
+                }
+            },
+        });
+    }
+}
+new Auth();
 
 mp.events.addCommand({
     login: async (player, inputLogin) => {

@@ -1,0 +1,67 @@
+@import './login.scss';
+@import './register.scss';
+
+.auth {
+    font-family: 'SF Bold Text';
+    width: 1350px;
+    height: 750px;
+    background: #000;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    border-radius: 12.5px;
+    margin-top: 8.5%;
+
+    .nav {
+        width: 100%;
+        height: 50px;
+        border-top-left-radius: 12.5px;
+        border-top-right-radius: 12.5px;
+
+        display: flex;
+        align-items: center;
+
+        padding: 10px;
+
+        .close {
+            width: 20px;
+            height: 20px;
+            background: #fe5c55;
+            border-radius: 50px;
+            border: none;
+        }
+
+        .close:hover {
+            cursor: pointer;
+            background: #a73b37;
+        }
+
+        .rollup {
+            width: 20px;
+            height: 20px;
+            background: #ffbd32;
+            border-radius: 50px;
+            border: none;
+            margin-left: 10px;
+        }
+
+        .rollup:hover {
+            cursor: pointer;
+            background: #af8222;
+        }
+
+        .expand {
+            width: 20px;
+            height: 20px;
+            background: #02cb4c;
+            border-radius: 50px;
+            border: none;
+            margin-left: 10px;
+        }
+
+        .expand:hover {
+            cursor: pointer;
+            background: #009236;
+        }
+    }
+}

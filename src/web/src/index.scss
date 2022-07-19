@@ -1,0 +1,18 @@
+@import './assets/fonts/fonts.scss';
+
+@import './assets/scss/auth/auth.scss';
+
+*, *::after, *::before {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    user-select: none;
+    list-style: none;
+    text-decoration: none;
+}
+
+body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
