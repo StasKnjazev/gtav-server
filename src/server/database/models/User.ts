@@ -72,6 +72,11 @@ export const userSchema = new Schema<IUser>(
 			type: Object,
 			required: true
 		},
+
+		avatarSocialClub: {
+			type: String,
+			required: true
+		}
 	},
 	{
 		timestamps: true,

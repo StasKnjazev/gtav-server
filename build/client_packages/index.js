@@ -101,16 +101,28 @@ mp.keys.bind(114 /* key.F3 */, true, () => {
     mp.gui.cursor.visible = !mp.gui.cursor.visible;
 });
 
-mp.events.add('callRegAccount', (email, login, password, rpassword) => {
-    mp.events.callRemote('authRegister', email, login, password, rpassword);
-});
-
-let main = null;
-if (!main) {
-    main = mp.browsers.new('http://localhost:3000/auth');
-    mp.gui.chat.push('Браузер работает');
-}
-mp.events.add('callLoginAccount', (login, password) => {
-    mp.gui.chat.push(`${login} ${password}`);
-    mp.events.callRemote('authLogin', login, password);
+let createAccountCef = null;
+mp.events.add({
+    callRegAccount: (email, login, password, rpassword) => {
+        mp.events.callRemote("authRegister", email, login, password, rpassword);
+        mp.gui.cursor.visible = true;
+    },
+    callLoginAccount: (login, password) => {
+        mp.events.callRemote("authLogin", login, password);
+        mp.gui.cursor.visible = true;
+    },
+    destroyNewAccountBrowser: () => {
+        if (createAccountCef) {
+            createAccountCef.destroy();
+            createAccountCef = null;
+            mp.gui.cursor.visible = false;
+        }
+    },
+    showNewAccountBrowser: () => {
+        if (!createAccountCef) {
+            createAccountCef = mp.browsers.new("http://localhost:3000/auth");
+            mp.gui.cursor.visible = true;
+            mp.game.graphics.notify("Web component is work.");
+        }
+    },
 });

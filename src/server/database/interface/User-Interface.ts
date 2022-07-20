@@ -13,4 +13,5 @@ export interface IUser {
     ip: string | number;
     serial: string;
     position: Object;
+    avatarSocialClub: string;
 }

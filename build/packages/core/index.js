@@ -108,6 +108,10 @@ const userSchema = new mongoose.Schema({
         type: Object,
         required: true
     },
+    avatarSocialClub: {
+        type: String,
+        required: true
+    }
 }, {
     timestamps: true,
     versionKey: false
@@ -1594,9 +1598,6 @@ var bcrypt$1 = {exports: {}};
 var bcrypt = /*@__PURE__*/getDefaultExportFromCjs(bcryptjs.exports);
 
 class Auth {
-    login;
-    password;
-    passwordHash;
     constructor() {
         this.initEvents();
     }
@@ -1605,15 +1606,17 @@ class Auth {
             playerJoin: async (player) => {
                 try {
                     const findUser = await UserModel.findOne({ serial: player.serial });
-                    if (!findUser)
-                        return player.outputChatBox('Авторизация не доступна, только регистрация.'); // сделать чтобы отображало страницу регистрации
-                    UserModel.findOneAndUpdate({ serial: player.serial }, { $set: { loggedIn: true } });
-                    player.outputChatBox(`Добро пожаловать на сервер ${findUser.firstName} ${findUser.lastName}`);
-                    const { x, y, z } = findUser.position;
-                    player.position = new mp.Vector3(x, y, z);
-                    player.dbId = findUser._id.toString();
-                    player.loggedIn = true;
-                    // method автоматического логина в аккаунт (через storage)
+                    if (!findUser) {
+                        player.call("showNewAccountBrowser");
+                    }
+                    else {
+                        UserModel.findOneAndUpdate({ serial: player.serial }, { $set: { loggedIn: true } });
+                        player.outputChatBox(`Добро пожаловать на сервер ${findUser.login}`);
+                        const { x, y, z } = findUser.position;
+                        player.position = new mp.Vector3(x, y, z);
+                        player.dbId = findUser._id.toString();
+                        player.loggedIn = true;
+                    }
                 }
                 catch (e) {
                     console.error(e);
@@ -1621,11 +1624,7 @@ class Auth {
             },
             playerQuit: async (player) => {
                 try {
-                    const findUserQuit = await UserModel.findOneAndUpdate({ serial: player.serial });
-                    if (!findUserQuit)
-                        return console.log('Данный пользователь либо не найден, либо не вышел из игры!');
-                    console.log(`${findUserQuit.firstName} ${findUserQuit.lastName} - Вышел из игры!`);
-                    player.loggedIn = false;
+                    const findUserQuit = await UserModel.findOneAndUpdate({ serial: player.serial }, { $set: { loggedIn: false } });
                 }
                 catch (e) {
                     console.log(e);
@@ -1635,7 +1634,16 @@ class Auth {
                 player.outputChatBox(`[Server] ${login} ${password}`);
                 const authUser = await UserModel.findOne({ login: login });
                 if (!authUser)
-                    return console.log('Неверный логин или пароль!');
+                    return console.log("Неверный логин или пароль!");
+                if (authUser.serial !== player.serial ||
+                    authUser.rgsc !== player.rgscId ||
+                    authUser.socialClub !== player.socialClub)
+                    return console.log("Данные аккаунта не совпадают.");
+                player.outputChatBox(`Добро пожаловать на сервер ${authUser.login}`);
+                const { x, y, z } = authUser.position;
+                player.position = new mp.Vector3(x, y, z);
+                player.dbId = authUser._id.toString();
+                player.loggedIn = true;
             },
             authRegister: async (player, email, login, password) => {
                 player.outputChatBox(`[Server] ${email} ${login} ${password}`);
@@ -1651,13 +1659,15 @@ class Auth {
                         socialClub: player.socialClub,
                         ip: player.ip,
                         serial: player.serial,
-                        position: player.position
+                        position: player.position,
+                        avatarSocialClub: `https://a.rsg.sc/n/${player.socialClub}`,
                     });
                     await newUser.save();
                     player.outputChatBox(`Аккаунт успешно зарегистрирован под логином: ${login}`);
+                    player.call("destroyNewAccountBrowser");
                 }
                 else {
-                    player.outputChatBox('Аккаунт уже существует');
+                    player.outputChatBox("Аккаунт уже существует");
                 }
             },
         });
