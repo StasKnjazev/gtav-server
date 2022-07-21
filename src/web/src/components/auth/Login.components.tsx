@@ -10,7 +10,6 @@ const Login = ({setThisPage}: any) => {
             <div className='content'>
                 <h2 className='title'>Добро пожаловать</h2>
                 <p className='description'>Войдите в свой аккаунт, или же зарегистрируйте новый.</p>
-
                 <input
                     className='logIn'
                     min='4'
@@ -18,7 +17,7 @@ const Login = ({setThisPage}: any) => {
                     type='text'
                     value={inputLogin}
                     onChange={(e) => setInputLogin(e.target.value)}
-                    placeholder='Логин'
+                    placeholder='Укажите логин'
                 />
 
                 <input
@@ -28,7 +27,7 @@ const Login = ({setThisPage}: any) => {
                     max='32'
                     value={inputPassword}
                     onChange={(e) => setInputPassword(e.target.value)}
-                    placeholder='Пароль'
+                    placeholder='Укажите Пароль'
                 />
 
                 <button className='enterBtn' onClick={() => onAccount(inputLogin, inputPassword)}>Войти</button>

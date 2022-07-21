@@ -1,4 +1,5 @@
 import React from 'react';
+import Character from '../character/Character.components';
 import Login from './Login.components';
 import Register from './Register.components';
 

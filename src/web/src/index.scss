@@ -1,6 +1,7 @@
 @import './assets/fonts/fonts.scss';
 
 @import './assets/scss/auth/auth.scss';
+@import './assets/scss/character/character.scss';
 
 *, *::after, *::before {
     margin: 0;
@@ -9,6 +10,7 @@
     user-select: none;
     list-style: none;
     text-decoration: none;
+    -webkit-user-drag: none;
 }
 
 body {
@@ -16,3 +18,10 @@ body {
     height: 100vh;
     overflow: hidden;
 }
+
+a {
+    color: white;
+    text-decoration: none;
+}
+
+// todo: Разобрать верстку (сверстать по нормальному, адаптив)

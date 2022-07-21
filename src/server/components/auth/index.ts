@@ -10,20 +10,17 @@ class Auth {
     mp.events.add({
       playerJoin: async (player: PlayerMp) => {
         try {
-          const findUser = await UserModel.findOne({ serial: player.serial });
-          if (!findUser) {
+          const findsUser = await UserModel.findOneAndUpdate(
+            { serial: player.serial },
+            { $set: { loggedIn: true } }
+          );
+          if (!findsUser) {
             player.call("showNewAccountBrowser");
           } else {
-            UserModel.findOneAndUpdate(
-              { serial: player.serial },
-              { $set: { loggedIn: true } }
-            );
-            player.outputChatBox(
-              `Добро пожаловать на сервер ${findUser.login}`
-            );
-            const { x, y, z }: any = findUser.position;
+            player.outputChatBox(`Добро пожаловать на сервер ${findsUser.login}`);
+            const { x, y, z }: any = findsUser.position;
             player.position = new mp.Vector3(x, y, z);
-            player.dbId = findUser._id.toString();
+            player.dbId = findsUser._id.toString();
             player.loggedIn = true;
           }
         } catch (e) {
@@ -35,8 +32,10 @@ class Auth {
         try {
           const findUserQuit = await UserModel.findOneAndUpdate(
             { serial: player.serial },
-            { $set: { loggedIn: false } }
+            { $set: { loggedIn: false, position: player.position } }
           );
+
+          findUserQuit!.save();
         } catch (e) {
           console.log(e);
         }
@@ -85,9 +84,7 @@ class Auth {
 
           await newUser.save();
 
-          player.outputChatBox(
-            `Аккаунт успешно зарегистрирован под логином: ${login}`
-          );
+          player.outputChatBox(`Аккаунт успешно зарегистрирован под логином: ${login}`);
           player.call("destroyNewAccountBrowser");
         } else {
           player.outputChatBox("Аккаунт уже существует");

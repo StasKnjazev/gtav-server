@@ -101,28 +101,62 @@ mp.keys.bind(114 /* key.F3 */, true, () => {
     mp.gui.cursor.visible = !mp.gui.cursor.visible;
 });
 
+const Natives = {
+    SET_BLIP_CATEGORY: "0x234CDD44D996FD9A",
+    SHOW_HEADING_INDICATOR_ON_BLIP: "0x5FBCA48327B914DF"
+};
+
+mp.events.add("entityStreamIn", (entity) => {
+    if (entity.type === "player") {
+        let color = parseInt(entity.getVariable("blipColor"));
+        if (entity.blip == 0) entity.createBlip(1);
+
+        entity.setBlipColor(isNaN(color) ? 0 : color);
+        mp.game.invoke(Natives.SET_BLIP_CATEGORY, entity.blip, 7);
+        mp.game.invoke(Natives.SHOW_HEADING_INDICATOR_ON_BLIP, entity.blip, true);
+    }
+});
+
+mp.events.addDataHandler("blipColor", (entity, value) => {
+    if (entity.type === "player") {
+        let color = parseInt(value);
+        entity.setBlipColor(isNaN(color) ? 0 : color);
+    }
+});
+
 let createAccountCef = null;
 mp.events.add({
     callRegAccount: (email, login, password, rpassword) => {
         mp.events.callRemote("authRegister", email, login, password, rpassword);
+        mp.console.logInfo(`${email} ${login} ${password} ${rpassword}`);
         mp.gui.cursor.visible = true;
+        mp.gui.cursor.show(true, true);
     },
     callLoginAccount: (login, password) => {
         mp.events.callRemote("authLogin", login, password);
         mp.gui.cursor.visible = true;
+        mp.gui.cursor.show(true, true);
     },
     destroyNewAccountBrowser: () => {
         if (createAccountCef) {
             createAccountCef.destroy();
             createAccountCef = null;
+            mp.gui.chat.show(true);
+            mp.gui.chat.activate(true);
             mp.gui.cursor.visible = false;
+            mp.gui.cursor.show(false, false);
+            mp.players.local.freezePosition(false);
         }
     },
     showNewAccountBrowser: () => {
         if (!createAccountCef) {
-            createAccountCef = mp.browsers.new("http://localhost:3000/auth");
+            createAccountCef = mp.browsers.new('http://localhost:3000/auth');
+            mp.players.local.position = new mp.Vector3(35.68, 859.94, 197.72);
+            mp.gui.chat.show(false);
+            mp.gui.chat.activate(false);
             mp.gui.cursor.visible = true;
-            mp.game.graphics.notify("Web component is work.");
+            mp.gui.cursor.show(true, true);
+            mp.players.local.freezePosition(true);
         }
     },
 });

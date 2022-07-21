@@ -1,0 +1,36 @@
+@import './basicData.scss';
+
+.character {
+    max-width: 450px;
+    height: 600px;
+    background: #000;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    border-radius: 12.5px;
+    margin: 250px 0 0 50px;
+
+    .content {
+        width: 100%;
+        color: white;
+        font-family: 'SF Bold Text';
+        text-align: center;
+        position: relative;
+
+        .title {
+            margin: 20px 0 0 0;
+        }
+
+        .description {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 25px;
+            background: #007bff;
+            border-bottom-left-radius: 12.5px;
+            border-bottom-right-radius: 12.5px;
+            margin: 65px 0 0 0;
+        }
+    }
+}

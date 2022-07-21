@@ -1605,16 +1605,15 @@ class Auth {
         mp.events.add({
             playerJoin: async (player) => {
                 try {
-                    const findUser = await UserModel.findOne({ serial: player.serial });
-                    if (!findUser) {
+                    const findsUser = await UserModel.findOneAndUpdate({ serial: player.serial }, { $set: { loggedIn: true } });
+                    if (!findsUser) {
                         player.call("showNewAccountBrowser");
                     }
                     else {
-                        UserModel.findOneAndUpdate({ serial: player.serial }, { $set: { loggedIn: true } });
-                        player.outputChatBox(`Добро пожаловать на сервер ${findUser.login}`);
-                        const { x, y, z } = findUser.position;
+                        player.outputChatBox(`Добро пожаловать на сервер ${findsUser.login}`);
+                        const { x, y, z } = findsUser.position;
                         player.position = new mp.Vector3(x, y, z);
-                        player.dbId = findUser._id.toString();
+                        player.dbId = findsUser._id.toString();
                         player.loggedIn = true;
                     }
                 }
@@ -1624,7 +1623,8 @@ class Auth {
             },
             playerQuit: async (player) => {
                 try {
-                    const findUserQuit = await UserModel.findOneAndUpdate({ serial: player.serial }, { $set: { loggedIn: false } });
+                    const findUserQuit = await UserModel.findOneAndUpdate({ serial: player.serial }, { $set: { loggedIn: false, position: player.position } });
+                    findUserQuit.save();
                 }
                 catch (e) {
                     console.log(e);
