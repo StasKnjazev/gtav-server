@@ -96,8 +96,14 @@
             background: #007bff;
             border-radius: 50px;
 
-            .icon {
-                color: white;
+            .link {
+                align-items: center;
+                justify-content: center;
+                display: flex;
+                
+                .icon {
+                    color: white;
+                }
             }
         }
 

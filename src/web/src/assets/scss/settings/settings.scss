@@ -1,0 +1,84 @@
+.all_settings {
+    position: relative;
+    max-width: 1350px;
+    height: 750px;
+    background: #000;
+    margin: 0 auto;
+    margin-top: 130px;
+    border-radius: 12.5px;
+
+    .nav_content {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        height: 70px;
+        border-top-left-radius: 12.5px;
+        border-top-right-radius: 12.5px;
+        padding: 20px;
+
+        // nav-button
+        .close {
+            width: 24px;
+            height: 24px;
+            background: #fe5c55;
+            border-radius: 50px;
+            border: none;
+        }
+
+        .close:hover {
+            cursor: pointer;
+            background: #a73b37;
+        }
+
+        .main_menu {
+            width: 24px;
+            height: 24px;
+            background: #ffbd32;
+            border-radius: 50px;
+            border: none;
+            margin-left: 10px;
+        }
+
+        .main_menu:hover {
+            cursor: pointer;
+            background: #af8222;
+        }
+
+        .save {
+            width: 24px;
+            height: 24px;
+            background: #02cb4c;
+            border-radius: 50px;
+            border: none;
+            margin-left: 10px;
+        }
+
+        .save:hover {
+            cursor: pointer;
+            background: #009236;
+        }
+        // end nav-button
+
+        .player_nav {
+            display: flex;
+            align-items: center;
+            color: white;
+            font-family: 'SF Bold Text';
+            right: 20px;
+            position: absolute;
+
+            .playerImage {
+                border-radius: 100px;
+                width: 64px;
+                height: 64px;
+                margin-right: 10px;
+            }
+
+            .playerName {
+                font-size: 22px;
+            }
+        }
+    }
+
+    
+}

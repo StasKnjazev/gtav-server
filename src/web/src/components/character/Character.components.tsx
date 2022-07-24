@@ -1,4 +1,4 @@
-import BasicCharacterData from "./modules/BasicCharacterData.components";
+import BasicCharacterData from "./components/BasicCharacterData.components";
 
 const Character = () => {
     return (

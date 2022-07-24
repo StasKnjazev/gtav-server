@@ -1,5 +1,5 @@
 import React from 'react';
-import onAccount from './scripts/login/onLoginAccount';
+import onAccount from '../scripts/onLoginAccount';
 
 const Login = ({setThisPage}: any) => {
     const [inputLogin, setInputLogin] = React.useState(''),

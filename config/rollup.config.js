@@ -68,7 +68,6 @@ function cleanUp() {
 		'pnpm-lock.yaml',
 		'package-lock.json',
 		'yarn.lock',
-		'savedposplayer.txt'
 	];
 
 	const removeablePaths = jetpack.find('build', {

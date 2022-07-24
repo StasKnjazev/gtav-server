@@ -1,7 +1,6 @@
 import React from 'react';
-import Character from '../character/Character.components';
-import Login from './Login.components';
-import Register from './Register.components';
+import Login from './components/Login.components';
+import Register from './components/Register.components';
 
 const Authorziation: React.FC = () => {
     const [page, setPage] = React.useState('login')
