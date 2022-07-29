@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { IoMdCheckmark } from 'react-icons/io';
 import { BiArrowBack } from 'react-icons/bi';
 import { BsGenderFemale, BsGenderMale } from 'react-icons/bs';
-import { sendData } from "../scripts/sendBasicCharacterData";
 
 type MainProps = {
     firstName: string,
@@ -11,23 +10,59 @@ type MainProps = {
     age: string
 };
 
-type GenderProps = {
-    female: boolean,
-    male: boolean
-};
-
 const BasicCharacterData = () => {
     const [mainData, setMainData] = useState<MainProps>({
         firstName: '',
         lastName: '',
         age: '',
-    }), [gender, setGender] = useState<GenderProps>({ female: false, male: false });
+    }), [gender, setGender] = useState('male');
 
     const navigate = useNavigate();
+    const { state } = useLocation();
 
     // Изменить нажатие кнопки по гендорам, сделать сразу отправку на клиент через ивент
-    const handleMaleClick = () => setGender({ ...gender, female: false, male: true });
-    const handleFemaleClick = () => setGender({ ...gender, female: true, male: false });
+    const handleMaleClick = () => {
+        // @ts-ignore
+        if (window.mp) {
+            // @ts-ignore
+            window.mp.trigger('changeToMale');
+        }
+
+        setGender('male');
+    };
+
+    const handleFemaleClick = () => {
+        // @ts-ignore
+        if (window.mp) {
+            // @ts-ignore
+            window.mp.trigger('changeToFemale');
+        }
+
+        setGender('female');
+    };
+
+    const sendData = async (mainData: MainProps, gender: string) => {
+        if (mainData.firstName === "" || mainData.lastName === "" || mainData.age === "") return console.log("Укажите все необходимые данные.");
+        if (gender === undefined || gender === null) return console.log('Укажите все необходимые данные.');
+
+        const ruPattern = /^\p{Script=Cyrillic}+$/u;
+        const numberPattern = /[0-9]/;
+        if (ruPattern.test(mainData.firstName) || ruPattern.test(mainData.lastName)) return console.log("Латиница");
+        if (numberPattern.test(mainData.firstName) || numberPattern.test(mainData.lastName)) return console.log("Есть цифры в строке");
+
+        const ageNum = Number(mainData.age);
+        if (ageNum >= 100) return console.log("Недопустимый возраст!");
+
+        if (mainData.firstName === mainData.lastName) return console.log('Имя и Фамилия совпадают!');
+
+        const { ue, ul, up }: any = state;
+
+        // @ts-ignore
+        if (window.mp) {
+            // @ts-ignore
+            window.mp.trigger("newAccountWithCharacterFirst", ue, ul, up, mainData.firstName, mainData.lastName, mainData.age, gender);
+        }
+    };
 
     return (
         <div className="basicData">
@@ -76,12 +111,12 @@ const BasicCharacterData = () => {
                     <BiArrowBack className="icon" />
                 </button>
 
-                <button className="success" onClick={() => sendData({ ...mainData }, { ...gender })}>
-                    <Link to='/characterSettings' className="link">
-                        <IoMdCheckmark className="icon" />
-                    </Link>
+                <button className="success" onClick={() => sendData({ ...mainData }, gender)}>
+                    <IoMdCheckmark className="icon" />
                 </button>
             </div>
+
+            <div className="description">Используйте мышь для поворота камеры</div>
         </div>
     )
 }

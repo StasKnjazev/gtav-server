@@ -7,7 +7,6 @@ const Character = () => {
                 <h3 className="title">Создание персонажа</h3>
 
                 <BasicCharacterData />
-                <div className="description">Используйте мышь для поворота камеры</div>
             </div>
         </div>
     )

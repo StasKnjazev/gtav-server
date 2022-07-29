@@ -1,33 +1,25 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
 
 const Register = ({ setThisPage }: any) => {
-    const [email, setEmail] = React.useState(''),
-        [login, setLogin] = React.useState(''),
-        [password, setPassword] = React.useState(''),
-        [rpassword, setRPassword] = React.useState('');
+    const [email, setEmail] = useState(''),
+        [login, setLogin] = useState(''),
+        [password, setPassword] = useState(''),
+        [rpassword, setRPassword] = useState('');
 
-    const onRegAccount = (
-        email: string,
-        login: string,
-        password: string,
-        rpassword: string
-    ) => {
-        const regExpMail =
-            /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    const navigate = useNavigate();
+
+    const onRegAccount = (email: string, login: string, password: string, rpassword: string) => {
+        const regExpMail = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
         if (!regExpMail.test(email)) return console.log("Почта не валидна");
-        if (email === "" || login === "" || password === "" || rpassword === "")
-            return console.log("Введены не все данные");
+        if (email === "" || login === "" || password === "" || rpassword === "") return console.log("Введены не все данные");
         if (login.length < 4) return console.log("Логин слишком короткий");
         if (password.length < 6) return console.log("Пароль слишком короткий");
         if (password !== rpassword) return console.log("Пароли не совпадают");
 
-        console.log(email, login, password, rpassword);
-        // @ts-ignore
-        if (window.mp) {
-            // @ts-ignore
-            window.mp.trigger("callRegAccount", email, login, password, rpassword);
-        }
+        console.log(email, login, password);
+        navigate('/character', { replace: true, state: { ue: email, ul: login, up: password } });
     };
 
 
@@ -75,7 +67,7 @@ const Register = ({ setThisPage }: any) => {
                 />
 
                 <button className='enterReg' onClick={() => onRegAccount(email, login, password, rpassword)}>
-                    <Link to='/character'>Продолжить</Link>
+                    Продолжить
                 </button>
                 <button className='enterLog' onClick={() => setThisPage('login')}>Войти в аккаунт</button>
             </div>

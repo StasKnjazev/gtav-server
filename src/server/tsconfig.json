@@ -7,5 +7,5 @@
 			"@/*": ["./*"]
 		}
 	},
-	"include": ["./**/*.ts", "backend/discord-bot/index.js"],
+	"include": ["./**/*.ts"],
 }

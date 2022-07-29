@@ -1,0 +1,40 @@
+.close {
+    width: 24px;
+    height: 24px;
+    background: #fe5c55;
+    border-radius: 50px;
+    border: none;
+}
+
+.close:hover {
+    cursor: pointer;
+    background: #a73b37;
+}
+
+.main_menu {
+    width: 24px;
+    height: 24px;
+    background: #ffbd32;
+    border-radius: 50px;
+    border: none;
+    margin-left: 10px;
+}
+
+.main_menu:hover {
+    cursor: pointer;
+    background: #af8222;
+}
+
+.save {
+    width: 24px;
+    height: 24px;
+    background: #02cb4c;
+    border-radius: 50px;
+    border: none;
+    margin-left: 10px;
+}
+
+.save:hover {
+    cursor: pointer;
+    background: #009236;
+}

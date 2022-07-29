@@ -10,7 +10,7 @@
 	"encryption": false,
 	"language": "ru",
 	"allow-cef-debugging": true,
-	"enable-http-security": false,
+	"enable-http-security": true,
 	"voice-chat": true,
 	"voice-chat-sample-rate": 24000,
 	"resources-compression-level": 0

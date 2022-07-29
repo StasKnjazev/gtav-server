@@ -1,4 +1,5 @@
-import { UserModel } from "@/database/models/User";
+import CharacterModel from "@/database/models/Character";
+import UserModel from "@/database/models/User";
 
 mp.events.addCommand({
   pos: (player: PlayerMp, _: any): void => {
@@ -11,9 +12,16 @@ mp.events.addCommand({
     );
   },
 
-  setAdmin: async (player: PlayerMp, login: string) => {
-    const user = await UserModel.findOne({ login: login });
-    if (!user) return player.outputChatBox("Пользователь не найден.");
+  setAdmin: async (player: PlayerMp, uid: number) => {
+    const character = await CharacterModel.findOne({ uid: uid });
+    if (!character) {
+      player.outputChatBox("Пользователь не найден.");
+    } else {
+      character.admin = true;
+      character.adminLvl = 3;
+
+      player.notify(`${character.fullName} Назначен администратором ${character.adminLvl} уровня!`);
+    }
   },
 
   changeUrl: async (player: PlayerMp, url: string) => {

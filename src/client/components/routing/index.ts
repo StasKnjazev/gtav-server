@@ -8,3 +8,7 @@ mp.events.add('changeUrlToClient', async (url: string) => {
         main = null;
     }
 });
+
+mp.events.add('playerReady', () => {
+    mp.events.call('changeUrlToClient', 'hud');
+});

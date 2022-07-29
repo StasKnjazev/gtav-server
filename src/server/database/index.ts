@@ -1,8 +1,6 @@
 import { consoleColor } from '@/../shared/contansts';
 import mongoose from 'mongoose';
 
-import './scripts/userSave';
-
 export default class MongooseConnection {
 	private url: string;
 

@@ -1,0 +1,44 @@
+@import './list.scss';
+@import './navButton.scss';
+
+.all_settings {
+    font-family: 'SF Bold Text';
+    width: 1350px;
+    height: 750px;
+    background: #000;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    border-radius: 12.5px;
+    margin-top: 8.5%;
+
+    .nav_content {
+        width: 100%;
+        height: 75px;
+        border-top-left-radius: 12.5px;
+        border-top-right-radius: 12.5px;
+        display: flex;
+        align-items: center;
+        padding: 10px;
+
+        .player_nav {
+            display: flex;
+            align-items: center;
+            margin-left: auto;
+            flex-wrap: wrap;
+
+            .playerImage {
+                border-radius: 50%;
+                width: 56px;
+                height: 56px;
+                margin-right: 10px;
+            }
+
+            .playerName {
+                font-family: 'SF Light';
+                color: white;
+                font-size: 24px;
+            }
+        }
+    }
+}

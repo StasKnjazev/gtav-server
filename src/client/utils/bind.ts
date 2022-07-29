@@ -17,7 +17,7 @@ mp.events.add("receptionUserData", async (userFirstName: string, userLastName: s
         lastName: userLastName,
         avatarUrl: userAvatarUrl,
       };
-      settingsBrowser = mp.browsers.new("http://localhost:3000/settings");
+      settingsBrowser = mp.browsers.new("http://localhost:3000/userMenu");
       await rpc.callBrowser(settingsBrowser, "CefSettings", { ...data });
       mp.gui.cursor.show(true, true);
     } else {

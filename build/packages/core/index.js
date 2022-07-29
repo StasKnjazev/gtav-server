@@ -50,107 +50,6 @@ class Time {
     }
 }
 
-const userSchema = new mongoose.Schema({
-    uid: {
-        type: Number,
-        unique: true
-    },
-    email: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    login: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    // firstName: {
-    // 	type: String,
-    // 	required: true
-    // },
-    // lastName: {
-    // 	type: String,
-    // 	required: true
-    // },
-    // fullName: {
-    // 	type: String,
-    // 	required: true,
-    // 	unique: true
-    // },
-    password: {
-        type: String,
-        required: true
-    },
-    loggedIn: {
-        type: Boolean,
-        required: true
-    },
-    rgsc: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    socialClub: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    ip: {
-        type: String
-    },
-    serial: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    position: {
-        type: Object,
-        required: true
-    },
-    avatarSocialClub: {
-        type: String,
-        required: true
-    }
-}, {
-    timestamps: true,
-    versionKey: false
-});
-const UserModel = mongoose.model('accounts', userSchema);
-
-const counterSchema = new mongoose.Schema({
-    _id: {
-        type: String,
-        required: true
-    },
-    seq: {
-        type: Number,
-        default: 0
-    }
-});
-counterSchema.index({
-    _id: 1,
-    seq: 1
-}, { unique: true });
-const counterModel = mongoose.model('counter', counterSchema);
-
-const autoincrement = (document, field, next) => {
-    counterModel.findByIdAndUpdate(document.constructor.modelName, { $inc: { seq: 1 } }, { new: true, upsert: true }, (error, counter) => {
-        if (error)
-            return next(error);
-        document[field] = counter.seq;
-        next();
-    });
-};
-
-userSchema.pre('save', function (next) {
-    if (!this.isNew) {
-        next();
-        return;
-    }
-    autoincrement(this, 'uid', next);
-});
-
 class MongooseConnection {
     url;
     constructor(urlDatabase) {
@@ -170,6 +69,141 @@ class MongooseConnection {
         }
     }
 }
+
+const counterSchema = new mongoose.Schema({
+    _id: { type: String, required: true },
+    seq: { type: Number, default: 0 },
+});
+counterSchema.index({ _id: 1, seq: 1 }, { unique: true });
+const CounterModel = mongoose.model("counter", counterSchema);
+const autoIncrementId = (doc, field, next) => {
+    CounterModel.findByIdAndUpdate(doc.constructor.modelName, { $inc: { seq: 1 } }, { new: true, upsert: true }, (error, counter) => {
+        if (error)
+            return next(error);
+        doc[field] = counter.seq;
+        next();
+    });
+};
+
+const characterSchema = new mongoose.Schema({
+    uid: {
+        type: Number,
+        unique: true,
+    },
+    firstName: {
+        type: String,
+        required: true,
+    },
+    lastName: {
+        type: String,
+        required: true,
+    },
+    age: {
+        type: String,
+        required: true,
+    },
+    gender: {
+        type: String,
+        required: true,
+        default: "male",
+    },
+    fullName: {
+        type: String,
+        required: true,
+    },
+    health: {
+        type: Number,
+        default: 100,
+    },
+    armour: {
+        type: Number,
+        default: 0,
+    },
+    position: {
+        type: Object,
+        required: true,
+    },
+    admin: {
+        type: Boolean,
+        required: true,
+        default: false
+    },
+    adminLvl: {
+        type: Number,
+        required: false,
+        default: 0
+    },
+});
+characterSchema.pre("save", function (next) {
+    if (!this.isNew) {
+        next();
+        return;
+    }
+    autoIncrementId(this, "uid", next);
+});
+const CharacterModel = mongoose.model("Character", characterSchema);
+
+const userSchema = new mongoose.Schema({
+    accountUid: {
+        type: Number,
+        unique: true,
+    },
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+    },
+    login: {
+        type: String,
+        required: true,
+        unique: true,
+    },
+    password: {
+        type: String,
+        required: true,
+    },
+    character: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Character",
+    },
+    loggedIn: {
+        type: Boolean,
+        required: true,
+    },
+    rgsc: {
+        type: String,
+        required: true,
+        unique: true,
+    },
+    socialClub: {
+        type: String,
+        required: true,
+        unique: true,
+    },
+    ip: {
+        type: String,
+    },
+    serial: {
+        type: String,
+        required: true,
+        unique: true,
+    },
+    avatarSocialClub: {
+        type: String,
+        required: true,
+    },
+}, {
+    timestamps: true,
+    versionKey: false,
+});
+userSchema.pre("save", function (next) {
+    if (!this.isNew) {
+        next();
+        return;
+    }
+    autoIncrementId(this, "accountUid", next);
+});
+const UserModel = mongoose.model("accounts", userSchema);
 
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
@@ -1605,16 +1639,13 @@ class Auth {
         mp.events.add({
             playerJoin: async (player) => {
                 try {
-                    const findsUser = await UserModel.findOneAndUpdate({ serial: player.serial }, { $set: { loggedIn: true } });
-                    if (!findsUser) {
+                    const findUser = await UserModel.findOneAndUpdate({ serial: player.serial }, { $set: { loggedIn: true } });
+                    if (!findUser) {
                         player.call("showNewAccountBrowser");
+                        player.dimension = player.id + 1000;
                     }
                     else {
-                        player.outputChatBox(`Добро пожаловать на сервер ${findsUser.login}`);
-                        const { x, y, z } = findsUser.position;
-                        player.position = new mp.Vector3(x, y, z);
-                        player.dbId = findsUser._id.toString();
-                        player.loggedIn = true;
+                        this.loginToAccount(player);
                     }
                 }
                 catch (e) {
@@ -1623,54 +1654,107 @@ class Auth {
             },
             playerQuit: async (player) => {
                 try {
-                    const findUserQuit = await UserModel.findOneAndUpdate({ serial: player.serial }, { $set: { loggedIn: false, position: player.position } });
-                    findUserQuit.save();
+                    this.playerIsQuit(player);
                 }
                 catch (e) {
                     console.log(e);
                 }
             },
             authLogin: async (player, login, password) => {
-                player.outputChatBox(`[Server] ${login} ${password}`);
                 const authUser = await UserModel.findOne({ login: login });
                 if (!authUser)
                     return console.log("Неверный логин или пароль!");
-                if (authUser.serial !== player.serial ||
-                    authUser.rgsc !== player.rgscId ||
-                    authUser.socialClub !== player.socialClub)
+                if (authUser.serial !== player.serial || authUser.rgsc !== player.rgscId || authUser.socialClub !== player.socialClub)
                     return console.log("Данные аккаунта не совпадают.");
                 player.outputChatBox(`Добро пожаловать на сервер ${authUser.login}`);
-                const { x, y, z } = authUser.position;
-                player.position = new mp.Vector3(x, y, z);
+                // const { x, y, z }: any = authUser.position;
+                // player.position = new mp.Vector3(x, y, z);
                 player.dbId = authUser._id.toString();
                 player.loggedIn = true;
             },
-            authRegister: async (player, email, login, password) => {
-                player.outputChatBox(`[Server] ${email} ${login} ${password}`);
-                const findUser = await UserModel.findOne({ serial: player.serial });
-                if (!findUser || !findUser.socialClub || !findUser.rgsc) {
-                    const passHash = (await bcrypt.hash(password, 10)).toString();
-                    const newUser = new UserModel({
-                        email: email,
-                        login: login,
-                        password: passHash,
-                        loggedIn: true,
+            registerNewCharacterWithUser: async (player, email, login, password, firstName, lastName, age, gender) => {
+                try {
+                    const findUser = await UserModel.findOne({
                         rgsc: player.rgscId,
-                        socialClub: player.socialClub,
-                        ip: player.ip,
                         serial: player.serial,
-                        position: player.position,
-                        avatarSocialClub: `https://a.rsg.sc/n/${player.socialClub}`,
                     });
-                    await newUser.save();
-                    player.outputChatBox(`Аккаунт успешно зарегистрирован под логином: ${login}`);
-                    player.call("destroyNewAccountBrowser");
+                    if (!findUser) {
+                        const character = new CharacterModel({
+                            firstName: firstName,
+                            lastName: lastName,
+                            age: age,
+                            gender: gender,
+                            fullName: `${firstName} ${lastName}`,
+                            armour: 0,
+                            health: 100,
+                            position: player.position,
+                        });
+                        const hash = (await bcrypt.hash(password, 10)).toString();
+                        const user = new UserModel({
+                            email: email,
+                            login: login,
+                            password: hash,
+                            loggedIn: true,
+                            rgsc: player.rgscId,
+                            socialClub: player.socialClub,
+                            ip: player.ip,
+                            serial: player.serial,
+                            avatarSocialClub: `https://a.rsg.sc/n/${player.socialClub}`,
+                            admin: false,
+                            character: character._id,
+                        });
+                        await user.save();
+                        await character.save();
+                        player.outputChatBox(`${character.firstName}`);
+                        player.model = mp.joaat(gender === "female" ? "mp_f_freemode_01" : "mp_m_freemode_01");
+                        player.call("destroyNewAccountBrowser");
+                    }
+                    else {
+                        console.log("Аккаунт уже существует!"); // notify
+                    }
                 }
-                else {
-                    player.outputChatBox("Аккаунт уже существует");
+                catch (e) {
+                    console.log(e);
                 }
             },
         });
+    }
+    loginToAccount(player) {
+        UserModel.findOne({ serial: player.serial })
+            .populate({ path: "character" })
+            .exec(function (err, users) {
+            if (err)
+                return console.error(`Populate error - ${err}`);
+            player.outputChatBox(`Добро пожаловать на сервер: ${users.character.fullName}`);
+            const { x, y, z } = users.character.position;
+            player.position = new mp.Vector3(x, y, z);
+            player.dbId = users.character._id.toString();
+            player.uid = users.character.uid;
+            player.loggedIn = true;
+            player.model = mp.joaat(users.character.gender === "female"
+                ? "mp_f_freemode_01"
+                : "mp_m_freemode_01");
+        });
+    }
+    async playerIsQuit(player) {
+        const data = {
+            serial: player.serial,
+            position: player.position,
+            armour: player.armour,
+            health: player.health,
+            dbId: player.dbId,
+            uid: player.uid,
+        };
+        const findUser = await UserModel.findOneAndUpdate({ serial: data.serial }, { $set: { loggedIn: false } });
+        const findCharacter = await CharacterModel.findOneAndUpdate({ uid: data.uid }, {
+            $set: {
+                position: data.position,
+                armour: data.armour,
+                health: data.health,
+            },
+        });
+        findUser.save();
+        findCharacter.save();
     }
 }
 new Auth();
@@ -1681,10 +1765,16 @@ mp.events.addCommand({
         let h = player.heading;
         console.log(`${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)} | * Head: ${h.toFixed(4)}`);
     },
-    setAdmin: async (player, login) => {
-        const user = await UserModel.findOne({ login: login });
-        if (!user)
-            return player.outputChatBox("Пользователь не найден.");
+    setAdmin: async (player, uid) => {
+        const character = await CharacterModel.findOne({ uid: uid });
+        if (!character) {
+            player.outputChatBox("Пользователь не найден.");
+        }
+        else {
+            character.admin = true;
+            character.adminLvl = 3;
+            player.notify(`${character.fullName} Назначен администратором ${character.adminLvl} уровня!`);
+        }
     },
     changeUrl: async (player, url) => {
         player.call('changeUrlToClient', [url]);
@@ -1695,8 +1785,8 @@ mp.events.add("getInfoUserData", async (player) => {
     const user = await UserModel.findOne({ serial: player.serial });
     if (!user)
         return;
-    player.call('receptionUserData', [user.firstName, user.lastName, user.avatarSocialClub]);
-    console.log([user.firstName, user.lastName, user.avatarSocialClub]);
+    player.call('receptionUserData', [user.login, user.avatarSocialClub]);
+    console.log([user.login, user.avatarSocialClub]);
 });
 
 const dotenvConfig = dotenv.config({

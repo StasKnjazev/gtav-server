@@ -1,0 +1,35 @@
+.container_list {
+    max-width: 225px;
+    height: 100%;
+    border-bottom-left-radius: 12.5px;
+    display: flex;
+    background: #242424;
+
+    .list {
+        width: 100%;
+        height: 90%;
+        margin: 10px 10px 0 65px;
+        display: block;
+        flex-direction: column;
+        flex-wrap: wrap;
+
+        .item {
+            background: #282828;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+            font-family: 'SF Light';
+            width: 100px;
+            height: 25px;
+            margin: 25px 0 0 0;
+            border: none;
+        }
+
+        .item:hover {
+            color: #007bff;
+            cursor: pointer;
+        }
+    }
+}

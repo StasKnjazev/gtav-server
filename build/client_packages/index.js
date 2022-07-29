@@ -125,7 +125,7 @@ mp.events.add("receptionUserData", async (userFirstName, userLastName, userAvata
             lastName: userLastName,
             avatarUrl: userAvatarUrl,
         };
-        settingsBrowser = mp.browsers.new("http://localhost:3000/settings");
+        settingsBrowser = mp.browsers.new("http://localhost:3000/userMenu");
         await rpc.callBrowser(settingsBrowser, "CefSettings", { ...data });
         mp.gui.cursor.show(true, true);
     }
@@ -138,16 +138,8 @@ mp.events.add("receptionUserData", async (userFirstName, userLastName, userAvata
 
 let createAccountCef = null;
 mp.events.add({
-    callRegAccount: (email, login, password, rpassword) => {
-        mp.events.callRemote("authRegister", email, login, password, rpassword);
-        mp.console.logInfo(`${email} ${login} ${password} ${rpassword}`);
-    },
-    callLoginAccount: (login, password) => {
-        mp.events.callRemote("authLogin", login, password);
-        mp.gui.cursor.show(true, true);
-    },
-    callCharacterRegister: (mainData, gender) => {
-        mp.console.logInfo(`${mainData} / ${gender}`);
+    newAccountWithCharacterFirst: (email, login, password, firstName, lastName, age, gender) => {
+        mp.events.callRemote('registerNewCharacterWithUser', email, login, password, firstName, lastName, age, gender);
     },
     destroyNewAccountBrowser: () => {
         if (createAccountCef) {
@@ -165,8 +157,8 @@ mp.events.add({
             mp.players.local.position = new mp.Vector3(35.68, 859.94, 197.72);
             mp.gui.chat.show(false);
             mp.gui.chat.activate(false);
-            mp.gui.cursor.show(true, true);
             mp.players.local.freezePosition(true);
+            mp.gui.cursor.show(true, true);
         }
     },
 });
@@ -179,5 +171,17 @@ mp.events.add('changeUrlToClient', async (url) => {
     else {
         main.destroy();
         main = null;
+    }
+});
+mp.events.add('playerReady', () => {
+    mp.events.call('changeUrlToClient', 'hud');
+});
+
+mp.events.add({
+    changeToMale: () => {
+        mp.players.local.model = mp.game.joaat('mp_m_freemode_01');
+    },
+    changeToFemale: () => {
+        mp.players.local.model = mp.game.joaat('mp_f_freemode_01');
     }
 });

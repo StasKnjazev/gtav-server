@@ -5,5 +5,6 @@ export type MainDataProps = {
 };
 
 export type GenderProps = {
-    female: false
+    female: boolean,
+    male: boolean,
 }

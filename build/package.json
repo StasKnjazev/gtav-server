@@ -5,7 +5,8 @@
     "prodBuild": "rollup -c ./config/rollup.config.js --environment NODE_ENV:production",
     "devBuild": "rollup -c ./config/rollup.config.js",
     "watch": "rollup -w -c ./config/rollup.config.js",
-    "dev": "ragemp-server.exe"
+    "dev": "ragemp-server.exe",
+    "devBack": "ts-node src/backend/bot.ts"
   },
   "repository": {
     "type": "git",

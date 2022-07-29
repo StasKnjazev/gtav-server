@@ -1,87 +1,83 @@
-import { Schema, model, trusted } from 'mongoose';
-import { IUser } from '../interface/User-Interface';
+import { Schema, model } from "mongoose";
+import { IUser } from "../types/User";
+import autoIncrementId from "./Counter";
 
-export const userSchema = new Schema<IUser>(
-	{
-		uid: {
-			type: Number,
-			unique: true
-		},
+const userSchema = new Schema(
+  {
+    accountUid: {
+      type: Number,
+      unique: true,
+    },
 
-		email: {
-			type: String,
-			required: true,
-			unique: true
-		},
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
 
-		login: {
-			type: String,
-			required: true,
-			unique: true
-		},
+    login: {
+      type: String,
+      required: true,
+      unique: true,
+    },
 
-		// firstName: {
-		// 	type: String,
-		// 	required: true
-		// },
+    password: {
+      type: String,
+      required: true,
+    },
 
-		// lastName: {
-		// 	type: String,
-		// 	required: true
-		// },
+    character: {
+      type: Schema.Types.ObjectId,
+      ref: "Character",
+    },
 
-		// fullName: {
-		// 	type: String,
-		// 	required: true,
-		// 	unique: true
-		// },
+    loggedIn: {
+      type: Boolean,
+      required: true,
+    },
 
-		password: {
-			type: String,
-			required: true
-		},
+    rgsc: {
+      type: String,
+      required: true,
+      unique: true,
+    },
 
-		loggedIn: {
-			type: Boolean,
-			required: true
-		},
+    socialClub: {
+      type: String,
+      required: true,
+      unique: true,
+    },
 
-		rgsc: {
-			type: String,
-			required: true,
-			unique: true
-		},
+    ip: {
+      type: String,
+    },
 
-		socialClub: {
-			type: String,
-			required: true,
-			unique: true
-		},
+    serial: {
+      type: String,
+      required: true,
+      unique: true,
+    },
 
-		ip: {
-			type: String
-		},
-
-		serial: {
-			type: String,
-			required: true,
-			unique: true
-		},
-
-		position: {
-			type: Object,
-			required: true
-		},
-
-		avatarSocialClub: {
-			type: String,
-			required: true
-		}
-	},
-	{
-		timestamps: true,
-		versionKey: false
-	}
+    avatarSocialClub: {
+      type: String,
+      required: true,
+    },
+  },
+  {
+    timestamps: true,
+    versionKey: false,
+  }
 );
 
-export const UserModel = model<IUser>('accounts', userSchema);
+userSchema.pre("save", function (next) {
+  if (!this.isNew) {
+    next();
+    return;
+  }
+
+  autoIncrementId(this, "accountUid", next);
+});
+
+const UserModel = model<IUser>("accounts", userSchema);
+
+export default UserModel;
