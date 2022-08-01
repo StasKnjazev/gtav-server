@@ -5,6 +5,7 @@ import App from './App';
 import Authorziation from './components/auth/Auth.components';
 import Character from './components/character/Character.components';
 import CharacterSettings from './components/character/components/CharacterSettings.components';
+import Chat from './components/chat/Chat.components';
 import Hud from './components/hud/Hud.components';
 import Settings from './components/menu/UserMenu.components';
 
@@ -23,9 +24,8 @@ root.render(
         <Route path='/character' element={<Character />} />
         <Route path='/characterSettings' element={<CharacterSettings />} />
         <Route path='/userMenu' element={<Settings />} />
+        <Route path='/chat' element={<Chat />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>
 );
-
-// todo: Сделать нормальную редирекцию (с history)

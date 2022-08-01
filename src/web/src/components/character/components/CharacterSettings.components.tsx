@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+// import slider from 'rc-slider';
 
 const CharacterSettings = () => {
     return (

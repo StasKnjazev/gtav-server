@@ -3,11 +3,15 @@
 var path = require('path');
 var dotenv = require('dotenv');
 var mongoose = require('mongoose');
+var express = require('express');
+var bodyParser = require('body-parser');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
 var path__default = /*#__PURE__*/_interopDefaultLegacy(path);
 var mongoose__default = /*#__PURE__*/_interopDefaultLegacy(mongoose);
+var express__default = /*#__PURE__*/_interopDefaultLegacy(express);
+var bodyParser__default = /*#__PURE__*/_interopDefaultLegacy(bodyParser);
 
 const consoleColor = {
     Reset: "\x1b[0m",
@@ -123,6 +127,11 @@ const characterSchema = new mongoose.Schema({
         type: Object,
         required: true,
     },
+    dimension: {
+        type: Number,
+        required: true,
+        default: 0,
+    },
     admin: {
         type: Boolean,
         required: true,
@@ -130,9 +139,27 @@ const characterSchema = new mongoose.Schema({
     },
     adminLvl: {
         type: Number,
-        required: false,
-        default: 0
+        required: false
     },
+    money: {
+        cash: {
+            type: Number,
+            default: 0,
+        },
+        bank: {
+            type: Number,
+            default: 0,
+        },
+    },
+    isWorkOnJob: {
+        type: Boolean,
+        default: false,
+    },
+    isJob: {
+        type: String,
+        default: 'none',
+        required: false,
+    }
 });
 characterSchema.pre("save", function (next) {
     if (!this.isNew) {
@@ -1637,40 +1664,8 @@ class Auth {
     }
     initEvents() {
         mp.events.add({
-            playerJoin: async (player) => {
-                try {
-                    const findUser = await UserModel.findOneAndUpdate({ serial: player.serial }, { $set: { loggedIn: true } });
-                    if (!findUser) {
-                        player.call("showNewAccountBrowser");
-                        player.dimension = player.id + 1000;
-                    }
-                    else {
-                        this.loginToAccount(player);
-                    }
-                }
-                catch (e) {
-                    console.error(e);
-                }
-            },
-            playerQuit: async (player) => {
-                try {
-                    this.playerIsQuit(player);
-                }
-                catch (e) {
-                    console.log(e);
-                }
-            },
             authLogin: async (player, login, password) => {
-                const authUser = await UserModel.findOne({ login: login });
-                if (!authUser)
-                    return console.log("Неверный логин или пароль!");
-                if (authUser.serial !== player.serial || authUser.rgsc !== player.rgscId || authUser.socialClub !== player.socialClub)
-                    return console.log("Данные аккаунта не совпадают.");
-                player.outputChatBox(`Добро пожаловать на сервер ${authUser.login}`);
-                // const { x, y, z }: any = authUser.position;
-                // player.position = new mp.Vector3(x, y, z);
-                player.dbId = authUser._id.toString();
-                player.loggedIn = true;
+                // soon...
             },
             registerNewCharacterWithUser: async (player, email, login, password, firstName, lastName, age, gender) => {
                 try {
@@ -1688,6 +1683,9 @@ class Auth {
                             armour: 0,
                             health: 100,
                             position: player.position,
+                            dimension: player.dimension,
+                            admin: false,
+                            isWorkOnJob: false,
                         });
                         const hash = (await bcrypt.hash(password, 10)).toString();
                         const user = new UserModel({
@@ -1708,6 +1706,7 @@ class Auth {
                         player.outputChatBox(`${character.firstName}`);
                         player.model = mp.joaat(gender === "female" ? "mp_f_freemode_01" : "mp_m_freemode_01");
                         player.call("destroyNewAccountBrowser");
+                        player.dimension = 0;
                     }
                     else {
                         console.log("Аккаунт уже существует!"); // notify
@@ -1734,21 +1733,27 @@ class Auth {
             player.model = mp.joaat(users.character.gender === "female"
                 ? "mp_f_freemode_01"
                 : "mp_m_freemode_01");
+            player.dimension = users.character.dimension;
+            player.admin = users.character.admin;
+            player.adminLvl = users.character.adminLvl;
+            player.isOnWork = users.character.isWorkOnJob;
+            player.isJob = users.character.isJob;
         });
     }
     async playerIsQuit(player) {
         const data = {
             serial: player.serial,
             position: player.position,
+            dimension: player.dimension,
             armour: player.armour,
             health: player.health,
-            dbId: player.dbId,
             uid: player.uid,
         };
         const findUser = await UserModel.findOneAndUpdate({ serial: data.serial }, { $set: { loggedIn: false } });
         const findCharacter = await CharacterModel.findOneAndUpdate({ uid: data.uid }, {
             $set: {
                 position: data.position,
+                dimension: data.dimension,
                 armour: data.armour,
                 health: data.health,
             },
@@ -1756,28 +1761,40 @@ class Auth {
         findUser.save();
         findCharacter.save();
     }
+    async findUserWithSerial(player) {
+        const findUser = await UserModel.findOneAndUpdate({ serial: player.serial }, { $set: { loggedIn: true } });
+        return findUser;
+    }
 }
-new Auth();
+const auth = new Auth();
 
 mp.events.addCommand({
     pos: (player, _) => {
-        let p = player.position;
-        let h = player.heading;
-        console.log(`${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)} | * Head: ${h.toFixed(4)}`);
+        let position = player.position;
+        let heading = player.heading;
+        console.log(`${position.x.toFixed(2)}, ${position.y.toFixed(2)}, ${position.z.toFixed(2)} | * Head: ${heading.toFixed(4)}`);
     },
+    // so far, the team is waiting until the admin panel is ready
     setAdmin: async (player, uid) => {
+        // const admin = await CharacterModel.findOne({ uid: player.uid });
+        // if (admin!.admin === false || admin!.adminLvl < 3) return;
         const character = await CharacterModel.findOne({ uid: uid });
         if (!character) {
-            player.outputChatBox("Пользователь не найден.");
+            player.notify("~r~Пользователь не найден!~w~");
         }
         else {
+            if (character.admin === true)
+                console.log('Игрок уже являеться администратором.');
+            if (character.adminLvl >= 3)
+                return console.log('Игрок уже находиться на максимально возможном админ уровне.');
             character.admin = true;
             character.adminLvl = 3;
-            player.notify(`${character.fullName} Назначен администратором ${character.adminLvl} уровня!`);
+            await character.save();
+            player.notify(`~g~[${character.fullName}] ~w~стал администратором ~g~[${character.adminLvl}] ~w~уровня!`);
         }
     },
     changeUrl: async (player, url) => {
-        player.call('changeUrlToClient', [url]);
+        player.call("changeUrlToClient", [url]);
     },
 });
 
@@ -1786,7 +1803,161 @@ mp.events.add("getInfoUserData", async (player) => {
     if (!user)
         return;
     player.call('receptionUserData', [user.login, user.avatarSocialClub]);
-    console.log([user.login, user.avatarSocialClub]);
+});
+
+mp.events.add('hudGetDataToRPC', (player) => {
+    player.call('hudDataWithRPC', [player.uid, player.admin]);
+});
+
+const bankBlips = [
+    { x: -1382.44, y: -500.38, z: 33.16 },
+    { x: 1180.27, y: 2704.92, z: 38.09 },
+    { x: -116.76, y: 6468.89, z: 31.63 },
+];
+const markers = [
+    { x: -1382.44, y: -500.38, z: 32.2 },
+    { x: 1180.46, y: 2704.89, z: 37.1 },
+    { x: -116.76, y: 6468.89, z: 30.65 },
+];
+const startColshapeFromSantos = mp.colshapes.newSphere(-1382.46, -500.65, 33.16, 1, 0);
+const startColshapeFromSandy = mp.colshapes.newSphere(1179.79, 2704.90, 38.09, 1, 0); // 1179.79, 2704.90, 38.09 // 1180.27, 2704.92, 38.09
+const startColshapeFromPaleto = mp.colshapes.newSphere(-116.76, 6468.89, 31.63, 1, 0);
+var config = {
+    bankBlips,
+    markers,
+    startColshapeFromSantos,
+    startColshapeFromSandy,
+    startColshapeFromPaleto,
+};
+
+class Collectors {
+    routes;
+    workBlip;
+    marker;
+    status = false;
+    constructor({ routes }) {
+        this.routes = routes;
+        config.bankBlips.map((position) => {
+            const { x, y, z } = position;
+            this.workBlip = mp.blips.new(408, new mp.Vector3(x, y, z), {
+                name: "Работа инкассатора",
+                scale: 0.7,
+                color: 43,
+                shortRange: true,
+                dimension: 0,
+            });
+        });
+        config.markers.map((position) => {
+            const { x, y, z } = position;
+            this.marker = mp.markers.new(27, new mp.Vector3(x, y, z), 1, {
+                color: [0, 178, 255, 198],
+                dimension: 0,
+                visible: true,
+            });
+        });
+        this.events();
+        this.commands();
+    }
+    async commands() {
+        mp.events.addCommand({
+            fsc: (player) => {
+                player.position = new mp.Vector3(-1383.08, -505.05, 33.16);
+            },
+        });
+    }
+    playerEnterColshape(player, colshape) {
+        try {
+            switch (colshape) {
+                case config.startColshapeFromSantos:
+                    if (player.isOnWork === false) {
+                        player.call("startWorkCollectors");
+                    }
+                    else {
+                        player.call("stopWorkCollectors");
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        catch (e) {
+            console.error(e);
+        }
+    }
+    playerExitColshape(player, colshape) {
+    }
+    async playerStartWork(player) {
+        player.isOnWork = true;
+        player.outputChatBox("Начал работать!");
+    }
+    async playerStopWork(player) {
+        player.isOnWork = false;
+        player.outputChatBox("Закончил работать!");
+    }
+    async events() {
+        mp.events.add({
+            playerEnterColshape: this.playerEnterColshape.bind(this),
+            playerExitColshape: this.playerExitColshape.bind(this),
+            playerStartWorkOnCollectors: async (player) => {
+                try {
+                    this.playerStartWork(player);
+                }
+                catch (e) {
+                    console.error(e);
+                }
+            },
+            playerStopWorkOnCollector: async (player) => {
+                try {
+                    this.playerStopWork(player);
+                }
+                catch (e) {
+                    console.error(e);
+                }
+            },
+        });
+    }
+}
+new Collectors({
+    routes: {
+        0: {
+            coordinates: [[]],
+        },
+    },
+});
+
+const app = express__default["default"]();
+app.use(bodyParser__default["default"].json());
+const port = 1337;
+// later...
+app.listen(port, () => console.log(`${consoleColor.Yellow}[Express]${consoleColor.Reset} Сервер запустился на http://localhost:${consoleColor.Green}${port}${consoleColor.Reset} url`));
+
+mp.events.add({
+    playerChat: (player, message) => {
+        mp.players.broadcastInRange(player.position, 15, `#${player.uid} говорит: ${message}`);
+    },
+    playerJoin: async (player) => {
+        try {
+            const user = auth.findUserWithSerial(player);
+            if (!user) {
+                player.call("showNewAccountBrowser");
+                player.dimension = player.id + 1000;
+            }
+            else {
+                auth.loginToAccount(player);
+            }
+        }
+        catch (e) {
+            console.error(e);
+        }
+    },
+    playerQuit: async (player) => {
+        try {
+            auth.playerIsQuit(player);
+        }
+        catch (e) {
+            console.log(e);
+        }
+    },
 });
 
 const dotenvConfig = dotenv.config({

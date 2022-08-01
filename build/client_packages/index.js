@@ -118,11 +118,10 @@ mp.keys.bind(114 /* key.F3 */, true, () => {
 mp.keys.bind(113 /* key.F2 */, true, async () => {
     mp.events.callRemote('getInfoUserData');
 });
-mp.events.add("receptionUserData", async (userFirstName, userLastName, userAvatarUrl) => {
+mp.events.add("receptionUserData", async (login, userAvatarUrl) => {
     if (!settingsBrowser) {
         const data = {
-            firstName: userFirstName,
-            lastName: userLastName,
+            login: login,
             avatarUrl: userAvatarUrl,
         };
         settingsBrowser = mp.browsers.new("http://localhost:3000/userMenu");
@@ -133,6 +132,27 @@ mp.events.add("receptionUserData", async (userFirstName, userLastName, userAvata
         settingsBrowser.destroy();
         settingsBrowser = null;
         mp.gui.cursor.show(false, false);
+    }
+});
+
+let hud = null;
+mp.events.add("playerReady", async () => {
+    mp.events.callRemote("hudGetDataToRPC"); // Получаю данные из БД (player.uid, player.admin)
+});
+// Сделать обновление данных (online) каждые 5-10 секунд. (ПОТОМ)
+mp.events.add("hudDataWithRPC", async (uid, admin) => {
+    if (!hud) {
+        const data = {
+            uid: uid,
+            isAdmin: admin,
+            online: mp.players.length,
+        };
+        hud = mp.browsers.new("http://localhost:3000/hud");
+        await rpc.callBrowser(hud, "hudSetData", { ...data });
+    }
+    else {
+        hud.destroy();
+        hud = null;
     }
 });
 
@@ -173,9 +193,6 @@ mp.events.add('changeUrlToClient', async (url) => {
         main = null;
     }
 });
-mp.events.add('playerReady', () => {
-    mp.events.call('changeUrlToClient', 'hud');
-});
 
 mp.events.add({
     changeToMale: () => {
@@ -183,5 +200,45 @@ mp.events.add({
     },
     changeToFemale: () => {
         mp.players.local.model = mp.game.joaat('mp_f_freemode_01');
+    }
+});
+
+function notifyBlack(message) {
+    if (mp.players.local.vehicle)
+        return;
+    if (mp.players.local.isTypingInTextChat)
+        return;
+    if (mp.game.ui.isPauseMenuActive())
+        return;
+    mp.game.ui.setTextComponentFormat("STRING");
+    mp.game.ui.addTextComponentSubstringPlayerName(`Нажмите ~INPUT_CONTEXT~ ${message}`);
+    mp.game.ui.displayHelpTextFromStringLabel(0, false, true, 3000);
+}
+
+function startWork() {
+    mp.events.callRemote("playerStartWorkOnCollectors");
+    setTimeout(() => {
+        mp.keys.unbind(69 /* key.E */, true, startWork);
+    }, 100);
+}
+function stopWork() {
+    mp.events.callRemote("playerStopWorkOnCollector");
+    setTimeout(() => {
+        mp.keys.unbind(69 /* key.E */, true, stopWork);
+    }, 100);
+}
+var script = {
+    startWork,
+    stopWork,
+};
+
+mp.events.add({
+    startWorkCollectors: () => {
+        notifyBlack('чтобы открыть меню.');
+        mp.keys.bind(69 /* key.E */, true, script.startWork);
+    },
+    stopWorkCollectors: () => {
+        notifyBlack('чтобы открыть меню.');
+        mp.keys.bind(69 /* key.E */, true, script.stopWork);
     }
 });

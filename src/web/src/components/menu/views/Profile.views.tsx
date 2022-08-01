@@ -1,7 +1,7 @@
-const Profile = ({ setThisPage }: any) => {
+const Profile = () => {
     return (
         <div className="profile">
-
+            <h3>{'firstName lastName'}</h3>
         </div>
     )
 }

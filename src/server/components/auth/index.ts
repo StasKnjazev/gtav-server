@@ -9,40 +9,8 @@ class Auth {
 
   private initEvents(): void {
     mp.events.add({
-      playerJoin: async (player: PlayerMp) => {
-        try {
-          const findUser = await UserModel.findOneAndUpdate(
-            { serial: player.serial },
-            { $set: { loggedIn: true } }
-          );
-          if (!findUser) {
-            player.call("showNewAccountBrowser");
-            player.dimension = player.id + 1000;
-          } else {
-            this.loginToAccount(player);
-          }
-        } catch (e) {
-          console.error(e);
-        }
-      },
-
-      playerQuit: async (player: PlayerMp) => {
-        try {
-          this.playerIsQuit(player);
-        } catch (e) {
-          console.log(e);
-        }
-      },
-
       authLogin: async (player: PlayerMp, login: string, password: string) => {
-        const authUser = await UserModel.findOne({ login: login });
-        if (!authUser) return console.log("Неверный логин или пароль!");
-        if (authUser.serial !== player.serial || authUser.rgsc !== player.rgscId || authUser.socialClub !== player.socialClub) return console.log("Данные аккаунта не совпадают.");
-        player.outputChatBox(`Добро пожаловать на сервер ${authUser.login}`);
-        // const { x, y, z }: any = authUser.position;
-        // player.position = new mp.Vector3(x, y, z);
-        player.dbId = authUser._id.toString();
-        player.loggedIn = true;
+        // soon...
       },
 
       registerNewCharacterWithUser: async (
@@ -71,6 +39,9 @@ class Auth {
               armour: 0,
               health: 100,
               position: player.position,
+              dimension: player.dimension,
+              admin: false,
+              isWorkOnJob: false,
             });
 
             const hash = (await bcrypt.hash(password, 10)).toString();
@@ -97,6 +68,7 @@ class Auth {
             );
 
             player.call("destroyNewAccountBrowser");
+            player.dimension = 0;
           } else {
             console.log("Аккаунт уже существует!"); // notify
           }
@@ -107,34 +79,33 @@ class Auth {
     });
   }
 
-  private loginToAccount(player: PlayerMp) {
+  public loginToAccount(player: PlayerMp) {
     UserModel.findOne({ serial: player.serial })
-      .populate({path: "character"})
+      .populate({ path: "character" })
       .exec(function (err: any, users: any) {
         if (err) return console.error(`Populate error - ${err}`);
-        player.outputChatBox(
-          `Добро пожаловать на сервер: ${users.character.fullName}`
-        );
+        player.outputChatBox(`Добро пожаловать на сервер: ${users.character.fullName}`);
         const { x, y, z }: any = users.character.position;
         player.position = new mp.Vector3(x, y, z);
         player.dbId = users.character._id.toString();
         player.uid = users.character.uid;
         player.loggedIn = true;
-        player.model = mp.joaat(
-          users.character.gender === "female"
-            ? "mp_f_freemode_01"
-            : "mp_m_freemode_01"
-        );
+        player.model = mp.joaat(users.character.gender === "female" ? "mp_f_freemode_01" : "mp_m_freemode_01");
+        player.dimension = users.character.dimension;
+        player.admin = users.character.admin;
+        player.adminLvl = users.character.adminLvl;
+        player.isOnWork = users.character.isWorkOnJob;
+        player.isJob = users.character.isJob;
       });
   }
 
-  private async playerIsQuit(player: PlayerMp) {
+  public async playerIsQuit(player: PlayerMp) {
     const data = {
       serial: player.serial,
       position: player.position,
+      dimension: player.dimension,
       armour: player.armour,
       health: player.health,
-      dbId: player.dbId,
       uid: player.uid,
     };
 
@@ -148,6 +119,7 @@ class Auth {
       {
         $set: {
           position: data.position,
+          dimension: data.dimension,
           armour: data.armour,
           health: data.health,
         },
@@ -157,6 +129,17 @@ class Auth {
     findUser!.save();
     findCharacter!.save();
   }
+
+  public async findUserWithSerial(player: PlayerMp) {
+    const findUser = await UserModel.findOneAndUpdate(
+      { serial: player.serial },
+      { $set: { loggedIn: true } }
+    );
+
+    return findUser;
+  }
 }
 
-new Auth();
+const auth = new Auth();
+
+export default auth;

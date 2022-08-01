@@ -1,1 +1,2 @@
 import './bind';
+import './browser';

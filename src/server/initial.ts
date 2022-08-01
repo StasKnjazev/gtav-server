@@ -7,6 +7,7 @@ import MongooseConnection from './database';
 import './scripts';
 import './components';
 import './utils';
+import './events';
 
 const dotenvConfig = config({
 	path: path.resolve('.env')

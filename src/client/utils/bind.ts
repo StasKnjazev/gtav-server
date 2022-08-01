@@ -10,13 +10,13 @@ mp.keys.bind(key.F2, true, async () => {
 	mp.events.callRemote('getInfoUserData');
 });
 
-mp.events.add("receptionUserData", async (userFirstName: string, userLastName: string, userAvatarUrl: string) => {
+mp.events.add("receptionUserData", async (login: string, userAvatarUrl: string) => {
     if (!settingsBrowser) {
       const data = {
-        firstName: userFirstName,
-        lastName: userLastName,
+        login: login,
         avatarUrl: userAvatarUrl,
       };
+      
       settingsBrowser = mp.browsers.new("http://localhost:3000/userMenu");
       await rpc.callBrowser(settingsBrowser, "CefSettings", { ...data });
       mp.gui.cursor.show(true, true);

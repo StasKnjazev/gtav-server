@@ -1,18 +1,29 @@
 declare global {
 	interface PlayerMp {
-		isOnWork: boolean;
-		isOnWorkAir: boolean;
-		currentIndex: number;
-		currentRoute: number;
-
-		firstName: string;
-		lastName: string;
-		email: string;
-		login: string;
-		adminLvl: string;
-		loggedIn: boolean;
 		dbId: string;
 		uid: number;
+		firstName: string;
+		lastName: string;
+		loggedIn: boolean;
+		admin: boolean;
+		adminLvl: string;
+		
+		money: {
+			cash: number,
+			bank: number,
+		};
+
+		isOnWork: boolean;
+		isJob: string;
+		jobCollctor: {
+			bankIndex: number;
+			partyFriendsValue: number;
+			partyFriendsList: string[];
+			vehicle: VehicleMp;
+			pointIndex: number;
+			routeIndex: number;
+			bagsValue: number;
+		};
 	}
 }
 

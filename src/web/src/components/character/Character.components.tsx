@@ -1,3 +1,5 @@
+import {memo} from 'react';
+
 import BasicCharacterData from "./components/BasicCharacterData.components";
 
 const Character = () => {
@@ -12,4 +14,4 @@ const Character = () => {
     )
 }
 
-export default Character;
+export default memo(Character);

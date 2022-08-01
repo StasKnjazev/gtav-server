@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { IoMdCheckmark } from 'react-icons/io';
 import { BiArrowBack } from 'react-icons/bi';
@@ -121,4 +121,4 @@ const BasicCharacterData = () => {
     )
 }
 
-export default BasicCharacterData;
+export default memo(BasicCharacterData);

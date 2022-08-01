@@ -49,6 +49,12 @@ const characterSchema = new Schema<Character>({
     required: true,
   },
 
+  dimension: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
+
   admin: {
     type: Boolean,
     required: true,
@@ -57,9 +63,31 @@ const characterSchema = new Schema<Character>({
 
   adminLvl: {
     type: Number,
-    required: false,
-    default: 0
+    required: false
   },
+
+  money: {
+    cash: {
+      type: Number,
+      default: 0,
+    },
+
+    bank: {
+      type: Number,
+      default: 0,
+    },
+  },
+
+  isWorkOnJob: {
+    type: Boolean,
+    default: false,
+  },
+
+  isJob: {
+    type: String,
+    default: 'none',
+    required: false,
+  }
 });
 
 characterSchema.pre("save", function (next) {

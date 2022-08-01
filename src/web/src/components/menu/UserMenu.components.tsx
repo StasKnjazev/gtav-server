@@ -1,25 +1,21 @@
 import { useState } from "react";
 import rpc from 'rage-rpc';
-import { close, menu, save } from './scripts/buttons';
-import List from "./views/List.views";
-import Profile from './views/Profile.views';
+import { close, menu, save } from './buttons';
+import Profile from "./views/Profile.views";
+import Statistics from "./views/Statistics.views";
 
 type Props = {
     login: string,
     avatarUrl: string,
-    admin: boolean,
-    adminName: string,
 };
 
 const Settings = () => {
     const [data, setData] = useState<Props>({
-        login: 'S8k1',
-        avatarUrl: 'https://a.rsg.sc/n/balbaskin',
-        admin: false,
-        adminName: 'Ciklop'
+        login: '',
+        avatarUrl: '',
     });
 
-    const [page, setPage] = useState('profile');
+    const [active, setActive] = useState(0);
 
     rpc.register('CefSettings', (clientData: Props) => {
         setData({ ...data, login: clientData.login, avatarUrl: clientData.avatarUrl });
@@ -32,23 +28,24 @@ const Settings = () => {
                 <button className="main_menu" onClick={menu}></button>
                 <button className="save" onClick={save}></button>
 
-                {!data.admin && (
-                    <div className="player_nav">
-                        <img className="playerImage" src={data.avatarUrl} alt="selfi" />
-                        <div className="playerName">{data.login}</div>
-                    </div>
-                )};
-
-                {data.admin && (
-                    <div className="player_nav">
-                        <img className="playerImage" src={data.avatarUrl} alt="selfi" />
-                        <div className="playerName">{data.adminName}</div>
-                    </div>
-                )};
+                <div className="player_nav">
+                    <img className="playerImage" src={data.avatarUrl} alt="selfi" />
+                    <div className="playerName">{data.login}</div>
+                </div>
             </div>
 
-            <List />
-            {page === 'profile' && <Profile setThisPage={setPage} />}
+            <div className='container_list'>
+                <ul className="list">
+                    <li className="item" onClick={() => setActive(1)}>Профиль</li>
+                    <li className="item" onClick={() => setActive(2)}>Статистика</li>
+                    <li className="item" onClick={() => setActive(3)}>Достижения</li>
+                    <li className="item" onClick={() => setActive(4)}>Вопрос</li>
+                    <li className="item" onClick={() => setActive(5)}>Настройки</li>
+                </ul>
+            </div>
+
+            {active === 1 && <Profile />}
+            {active === 2 && <Statistics />}
         </div>
     )
 }
